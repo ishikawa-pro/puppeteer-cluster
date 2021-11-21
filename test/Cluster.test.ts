@@ -24,7 +24,7 @@ beforeAll(async () => {
         testServer = http.createServer((req, res) => {
             res.writeHead(200, { 'Content-Type': 'text/html' });
             res.end('<html><body>puppeteer-cluster TEST</body></html>');
-        }).listen(3001, '127.0.0.1', resolve);
+        }).listen(3001, '127.0.0.1', () => resolve(undefined));
     });
 });
 
@@ -551,7 +551,11 @@ describe('options', () => {
     test('other puppeteer objects like puppeteer-core', async () => {
         expect.assertions(2);
 
-        const executablePath = puppeteer.executablePath();
+        const browserFetcher = (
+            puppeteer as unknown as puppeteer.PuppeteerNode
+        ).createBrowserFetcher({});
+        const revisions = await browserFetcher.localRevisions();
+        const { executablePath } = browserFetcher.revisionInfo(revisions[0]);
         const cluster = await Cluster.launch({
             concurrency: Cluster.CONCURRENCY_BROWSER,
             puppeteerOptions: {
